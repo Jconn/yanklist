@@ -64,9 +64,17 @@ fn calc() -> oxi::Result<Dictionary> {
 
     let w = Rc::clone(&win);
     let open_window = Function::from_fn::<_, oxi::Error>(move |()| {
-        if w.borrow().is_some() {
-            api::err_writeln("Window is already open");
-            return Ok(());
+
+        let mut win = w.borrow_mut();
+        if win.is_some() && win.as_ref().unwrap().is_valid(){
+            let win_height = win.as_ref().unwrap().get_height();
+            if win_height != Ok(0) {
+
+                let err_str = format!("the window is already open, win size {}", win_height.unwrap());
+                api::err_writeln(&err_str);
+                return Ok(());
+
+            }
         }
         
         let mut buf = api::create_buf(false, true)?;
@@ -91,8 +99,7 @@ fn calc() -> oxi::Result<Dictionary> {
             .col(0)
             .build();
 
-        let mut win = w.borrow_mut();
-        *win = Some(api::open_win(&buf, false, &config)?);
+        *win = Some(api::open_win(&buf, true, &config)?);
 
         Ok(())
     });
@@ -100,7 +107,18 @@ fn calc() -> oxi::Result<Dictionary> {
     //Ok(Dictionary::from_iter([
     //]))
 
+    let close_window = Function::from_fn(move |()| {
+        if win.borrow().is_none() {
+            api::err_writeln("Window is already closed");
+            return Ok(());
+        }
+
+        let win = win.borrow_mut().take().unwrap();
+        win.close(false)
+    });
+
     Ok(Dictionary::from_iter([
         ("open_window", open_window),
+        ("close_window", close_window),
     ]))
 }
