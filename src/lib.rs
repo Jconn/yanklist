@@ -8,7 +8,7 @@ use nvim_oxi::api::{self, opts::*, types::*, Window, Buffer};
 use nvim_oxi::{self as oxi, Dictionary, Function, Object};
 use nvim_oxi::print;
 #[oxi::module]
-fn calc() -> oxi::Result<Dictionary> {
+fn yankpast() -> oxi::Result<Dictionary> {
     let add =
         Function::from_fn(|(a, b): (i32, i32)| Ok::<_, Infallible>(a + b));
 
